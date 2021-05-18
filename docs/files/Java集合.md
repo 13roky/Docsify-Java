@@ -54,9 +54,7 @@
 
 ## 2. Collection 接口
 
-
-
- ## Collection 接口方法
+### Collection 接口方法
 
 1. add(Object e) : 将元素e添加到集合中
 2. addAll(Collection coll) : 将coll中的元素添加到当前的集合中

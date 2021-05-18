@@ -18,9 +18,13 @@
     window.$docsify = {
         name: '13roky',
         repo: 'https://github.com/13roky',
+        themeColor:'#ffa39e',
+        mergeNavbar: true,
         loadNavbar: true,
         loadSidebar: true,
         subMaxLevel: 0,
+        onlyCover: false,
+        topMargin: 90,
         coverpage: true,
         toc: {
             tocMaxLevel: 5,
@@ -28,6 +32,7 @@
         },
     }
 </script>
+
 <!-- Docsify v4 -->
 <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
 
@@ -40,6 +45,9 @@
 
 <!-- Search All Docs -->
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+
+<script src="//polyfill.io/v3/polyfill.min.js?features=String.prototype.normalize"></script>
+
 
 
 </body>
