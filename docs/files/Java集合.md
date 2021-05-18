@@ -1,6 +1,7 @@
 ## Java集合
 
 
+
 ## 1. Java 集合框架概述
 
 > 一方面， 面向对象语言对事物的体现都是以对象的形式，为了方便对多个对象 的操作，就要对对象进行存储。
@@ -9,14 +10,14 @@
 
 
 
-###  **数组存储多个数据方面的特点 :**
+###  数组存储多个数据方面的特点
 
 - 数组初始化以后，长度就确定了。
 - 数组声明的类型，就决定了进行元素初始化时的类型。
 
 
 
-### **数组在存储数据方面的弊端：**
+### 数组在存储数据方面的弊端
 
 - 数组初始化以后，长度就不可变了，不便于扩展
 - 数组中提供的属性和方法少，不便于进行添加、删除、插入等操作，且效率不高。同时无法直接获取存储元素的个数
@@ -24,13 +25,13 @@
 
 
 
-### **集合的特点：**
+### 集合的特点
 
 - Java 集合类可以用于存储数量不等的多个对象，还可用于保存具有映射关系的 关联数组。
 
 
 
-### **Java 集合可分为 Collection 和 Map 两种体系：**
+### Java 集合可分为 Collection 和 Map 两种体系
 
 - **Collection接口：**单列数据，定义了存取一组对象的方法的集合
   - **List接口：**元素有序、可重复的集合
@@ -39,7 +40,7 @@
 
 
 
-### **集合框架：**
+### 集合框架
 
 - Collection接口：单列集合，用来存储一个个的对象
   - list接口：存储有序的、可重复的数据（动态数组）
@@ -55,7 +56,7 @@
 
 
 
- ## **Collection 接口方法 :**
+ ## Collection 接口方法
 
 1. add(Object e) : 将元素e添加到集合中
 2. addAll(Collection coll) : 将coll中的元素添加到当前的集合中
@@ -71,7 +72,7 @@
 
 
 
-### **对于 Collection 的说明 :**  
+### 对于 Collection 的说明
 
 1. Collection 接口的实现类的对象中添加 obj 时, 要求 obj 所在类重写 equals().
 2. Collection 无法储存基本数据类型, 其所储存这些基本数据类型时是采用装箱来储存的
@@ -249,7 +250,7 @@ class Person{
 
 
 
-### **过于 Iterator 的说明 :**
+### 过于 Iterator 的说明 
 
 1. 集合每次调用 iterrator() 方法都得到一个全新的迭代器对象
 2. 迭代器生成时, 默认指针都在第一个元素之前
@@ -259,7 +260,7 @@ class Person{
 
 
 
-### **Iterator 接口的方法 :**
+### Iterator 接口的方法
 
 1. boolean hasNext()
 2. <E> next()
@@ -267,7 +268,7 @@ class Person{
 
 
 
-### **使用 :**
+### 使用 
 
 1. 使用 Collection 对象的 iterator 方法, 返回一个 Iterator 对象
 2. 使用 Iterator 接口中的 hasNext(), next(), remove() 三个方法完成对集合的遍历操作
@@ -275,7 +276,7 @@ class Person{
 
 
 
-### **遍历操作 :**
+### 遍历操作 
 
 1. 直接调用 next() 方法, 超出集合时会报错 (不推荐)
 2. 使用 for 循环遍历 (不推荐)
@@ -284,7 +285,7 @@ class Person{
 
 
 
-### **迭代器遍历的实现原理 :** 
+### 迭代器遍历的实现原理 
 
 1. 当返回了一个迭代器对象时, 就会有一个指针指向集合第一个元素的上面
 2. 当调用 hasNext() 方法时, 迭代器会判断指针的下一个位置是否存在元素
@@ -375,13 +376,13 @@ public class IteratorTest {
 
 
 
-### **关于 List 的说明**
+### 关于 List 的说明
 
 1. 所有用数组的地方都可以用ArrayList
 
 
 
-### **List 的实现类**
+### List 的实现类
 
 - ArrayList : 作为List的主要实现类, 线程不安全的, 效率高; 底层使用Object[]存储
 
@@ -398,7 +399,7 @@ public class IteratorTest {
 
 
 
-### **ArrayList底层**
+### ArrayList底层
 
 - JDK 7情况下 (类似饿汉式)
 
@@ -422,14 +423,14 @@ JDK7 中的ArrayList的对象的创建类似于单例的饿汉式, 而JDK8 中�
 
 
 
-### **LinkedList底层**
+### LinkedList底层
 
 1. LinkedList list = new LinkedList(); //内部声明了Node类型的first和last属性, 默认值为null
 2. list.add(123); //将123封装到Node中, 创建了Node对象.
 
 
 
-### **Vector底层**
+### Vector底层
 
 1. 基本就是线程安全版的ArrayList
 2. 扩容时是扩容为原来的两倍
@@ -437,7 +438,7 @@ JDK7 中的ArrayList的对象的创建类似于单例的饿汉式, 而JDK8 中�
 
 
 
-### **List 接口的方法**
+### List 接口的方法
 
 1. void add(int index, Object ele) : 在index位置插入ele元素
 2. boolean addAll(int index, Collection eles):从index位置开始将eles中 的所有元素添加进来
@@ -572,7 +573,7 @@ public class ListTest {
 
 
 
-### **总结ArrayList常用方法**
+### 总结ArrayList常用方法
 
 - 增 : add(Object obj)
 - 删 : remove(int index) / remove(Object obj) 一个是自己的方法, 一个是Collection中的方法
