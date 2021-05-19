@@ -635,3 +635,211 @@ public class ListExer {
 ```
 
 :::
+
+
+
+## 5. Collection 子接口 : Set 接口
+
+> 存储无序的, 不可重复的数据
+
+
+
+### Set 的实现类
+
+- HashSet : 作为 Set 接口的主要实现类; 线程不安全的; 可以存储 null 值
+  - LinkedHashSet : 作为 HashSet 的子类; 遍历其内部数据时可以按照添加时的顺序去遍历
+- TreeSet : 可以按照添加对象的指定属性, 进行排序
+
+
+
+### Set 存储无序的, 不可重复的数据
+
+- 无序性
+  - 不等于随机性
+  - hashset 底层也是用数组存储, 无序性就是向数组中添加元素, 不是按照数据索引顺序添加的, 而是按照添加元素的哈希值添加的
+
+- 不可重复性
+  - 保证添加的元素按照equals方法判断时不能返回true. 即相同的元素不能添加进来
+
+
+
+### 添加元素的过程, 以 HashSet 为例
+
+
+
+![](https://i.vgy.me/aT84mA.png)
+
+
+
+1. 在 HashSet 的底层是采用 数组 和 链表 的结构来存储对象的
+
+2. HashSet 对象被实例化时, 如果没有指定长度, 其底层会默认为这个对象生成一个长度为 16 的数组
+
+3. 当添加 对象a 时, 会调用 对象a 的 hashCode 方法获取其哈希值, 将哈希值与数组长度做某种算法的运算, 得到的数值就是插入时其位于底层数组中的索引值.
+
+4. 当添加 对象b 时, 如果经计算得出 对象b 应存放的位置无对象, 则 对象b 添加成功.
+
+5. 当添加 对象b 时, 如果经计算得出 对象b 应存放的位置有 对象a, 则比较二者的哈希值.
+
+6. 当 对象b 的哈希值与 对象a 相同时, HashSet 会调用 对象b 的 equals 方法 (equals判断的是哈希值是否相等) 与数组中的 对象a 比较, 如果返回是 false, 那么 对象b 不会插入数组, 如果返回值是 false 对象b 会以链表的形式存入
+
+7. 在链表中 a和b的 方向的指向在 jdk7 和 jdk8 中有不同, 7上8下
+
+   jdk7 中 : 新增对象放到数组中指向被挤出去的原来的元素
+
+   jdk8中 : 原来的对象放在数组中, 指向新增元素
+
+8. 如果数组的使用率超过 0.75, 就会扩大为原来的两倍.
+
+
+
+### equals() 和 hashCode 的重写
+
+1. equals() 方法盘算的是哈希值是否相等, 如果不重写 hashCode 方法, 那么调用的就是 Objetc 中的 hashCode 方法, 在 Object 的 hashCode 中的哈希值可以理解为是随机生成的.
+
+2. 为什么IDEA和Eclipse中重写hashSet会有31
+   - 选择系数的时候要选择尽量大的系数。因为如果计算出来的hash地址越大，所谓的 “冲突”就越少，查找起来效率也会提高。（减少冲突）
+   - 并且31只占用5bits,相乘造成数据溢出的概率较小。
+   - 31可以 由i*31== (i<<5)-1来表示,现在很多虚拟机里面都有做相关优化。（提高算法效率）
+   - 31是一个素数，素数作用就是如果我用一个数字来乘以这个素数，那么最终出来的结 果只能被素数本身和被乘数还有1来整除！(减少冲突)
+
+
+
+> [哈希碰撞]([(22条消息) 通俗讲解哈希表，哈希碰撞问题！_You can walk as far as you want.-CSDN博客](https://blog.csdn.net/qq_33384191/article/details/103417171?ops_request_misc=%7B%22request%5Fid%22%3A%22162137114316780357251320%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=162137114316780357251320&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-103417171.first_rank_v2_pc_rank_v29&utm_term=哈希碰撞&spm=1018.2226.3001.4187))
+
+
+
+### 说明
+
+1. Set 接口中没有额外定义新的方法, 使用的都是 Collection 中声明的方法
+2. 向 Set 中添加的数据, 其所在类一定要重写 hashCode() 和 equals()
+3. 重写 hashCode() 和 equals() 尽可能保持一致性 : 相等的对象必须具有相等的散列码
+
+4. 重写两个方法的小技巧 : 对象中用作 equals() 方法比较的 Field, 都应该用来计算 hashCode
+
+5. **HashSet 内部其实是靠 HashMap 来完成的, new 一个 HashSet 的时候, 在其内部也 new 了 HashMap**
+
+
+
+### Demo
+
+```java
+package com.broky.Collection;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+/**
+ * @author 13roky
+ * @date 2021-05-18 21:52
+ */
+public class SetTest {
+    @Test
+    void Test01(){
+        Set set = new HashSet();
+        set.add(456);
+        set.add(123);
+        set.add("AA");
+        set.add("CC");
+        set.add(new User("tom",12));
+        set.add(new User("tom",12));
+        set.add(129);
+
+        Iterator iterator = set.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+        
+    }
+}
+```
+
+```java
+package com.broky.Collection;
+
+import java.util.Objects;
+
+/**
+ * @author 13roky
+ * @date 2021-05-18 22:07
+ */
+public class User {
+    private String name;
+    private int age;
+
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" + "name='" + name + '\'' + ", age=" + age + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        System.out.println("User.equals");
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return age == user.age && Objects.equals(name, user.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, age);
+    }
+}
+```
+
+
+
+### LinkedHashSet
+
+> 为了频繁的遍历而涉及的类, 在原有的HashSet上, 在添加数据的同时, 每个数据还维护了两个引用, 记录此数据的前一个数据和后一个数据, 既有next 也有 front
+
+**优点**
+
+- 对于频繁的遍历操作, LinkedHashSet 效率高于 HashSet
+
+
+
+### TreeSet
+
+**说明**
+
+- 向 TreeSet 中添加的数据, 要求是向同类的对象
+
+  
+
+**两种排序方式, 自然排序, 定制排序**
+
+- 自然排序中比较两个对象是否相同的标准为 : comparable() 返回0, 不再是equals()
+- 定制排序中比较两个对象是否相同的标准为 : compare() 返回0, 不再是equals()
+
+**TreeSet 底层 **(了解)
+
+- TreeSet 和后面要讲的 TreeMap 采用红黑树的存储结构, 其特点为有序, 查询速度比 List 快
+
+
+
