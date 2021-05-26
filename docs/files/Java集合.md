@@ -899,7 +899,9 @@ Map 中的 entry : 无序的, 不可重复的, 使用 Set 存储所有的 entry
 
 补充: 关于情况2和情况3: 此时key1-value1和原来的数据以链表的方式存储
 
-在不断地添加过程中, 会涉及到扩容问题, 默认的扩容方式: 扩容为原来容量的2倍, 并将原有的数据复制过来.
+在不断地添加过程中, 会涉及到扩容问题, 当超出临界值（且要存放的位置非空）时，扩容。默认的扩容方式: 扩容为原来容量的2倍, 并将原有的数据复制过来.
+
+如果扩容，原来数据的存储位置需要重新进行计算，所以扩容前后的原有数据位置可能会不一样
 
 
 
@@ -916,3 +918,592 @@ Map 中的 entry : 无序的, 不可重复的, 使用 Set 存储所有的 entry
    当数组的某一个索引位置上的元素以链表的形式存在的数据个数 > 8 且当前数组的长度 > 64时,
 
    此时此索引位置上的所有数据改为使用红黑树存储.
+
+
+
+### Map中定义的方法
+
+
+
+**添加、删除、修改操作：** 
+
+- Object put(Object key,Object value)：将指定key-value添加到(或修改)当前map对象中 
+- void putAll(Map m):将m中的所有key-value对存放到当前map中 
+- Object remove(Object key)：移除指定key的key-value对，并返回value 
+- void clear()：清空当前map中的所有数据
+
+```java
+@Test
+void test01(){
+
+    Map map = new HashMap();
+
+    //put()
+    map.put("AA", 123);
+    map.put("BB", 123);
+    map.put(45, 56);
+    map.put("AA", 87);
+    System.out.println(map);
+
+    //putAll()
+    HashMap map1 = new HashMap();
+    map1.put("CC",98);
+    map1.put("DD",47);
+
+    map.putAll(map1);
+    System.out.println(map);
+
+    //remove()
+    Object remove = map.remove("CC");
+    System.out.println(remove);
+    System.out.println(map);
+
+    //clear()
+    System.out.println(map.size());
+    map.clear();
+    System.out.println(map.size());
+
+}
+```
+
+
+
+**元素查询的操作：** 
+
+- Object get(Object key)：获取指定key对应的value 
+- boolean containsKey(Object key)：是否包含指定的key 
+- boolean containsValue(Object value)：是否包含指定的value 
+- int size()：返回map中key-value对的个数 
+- boolean isEmpty()：判断当前map是否为空 
+- boolean equals(Object obj)：判断当前map和参数对象obj是否相等
+
+```java
+@Test
+void test02() {
+
+    Map map = new HashMap();
+    map.put("AA", 123);
+    map.put("BB", 123);
+    map.put(45, 56);
+    map.put("AA", 87);
+    System.out.println(map);
+
+    //get()
+    System.out.println(map.get("AA"));
+
+    //containsKey()
+    System.out.println(map.containsKey("AA"));
+
+    //containsValue()
+    System.out.println(map.containsValue(87));
+
+
+    //isEmpty()
+    System.out.println(map.isEmpty());
+
+    //size()
+    System.out.println(map.size());
+
+    //equals()
+    Map map1 = map;
+    System.out.println(map.equals(map1));
+
+}
+```
+
+
+
+**元视图操作的方法：** 
+
+- Set keySet()：返回所有key构成的Set集合 
+- Collection values()：返回所有value构成的Collection集合 
+- Set entrySet()：返回所有key-value对构成的Set集合
+
+```java
+@Test
+    void test03() {
+
+        Map map = new HashMap();
+        map.put("AA", 123);
+        map.put("BB", 123);
+        map.put(45, 56);
+        map.put("AA", 87);
+        System.out.println(map);
+
+        //Set keySet()
+        Set keySet = map.keySet();
+        System.out.println(keySet);
+
+        //Collection values()
+        Collection values = map.values();
+        System.out.println(values);
+
+        //遍历key-values方式一
+        //Set entrySet()
+        Set entrySet = map.entrySet();
+        System.out.println(entrySet);
+        Iterator iterator = entrySet.iterator();
+        while (iterator.hasNext()){
+            //entrySet中的元素都是entry
+            Object obj = iterator.next();
+            Map.Entry entry = (Map.Entry) obj;
+            System.out.println(entry.getKey() + "------>" + entry.getValue());
+        }
+
+        //遍历key-values方式二
+        Iterator iterator1 = keySet.iterator();
+        while (iterator1.hasNext()) {
+            Object key1 = iterator1.next();
+            Object values1 = map.get(key1);
+            System.out.println(key1 + "=====" + values1);
+        }
+    }
+```
+
+
+
+### HashMap 源码解析 jdk1.7
+
+
+
+**继承关系**
+
+```java
+public class Hashtable<K,V>
+    extends Dictionary<K,V>
+    implements Map<K,V>, Cloneable, java.io.Serializable {
+```
+
+继承了Dictionary，实现了Map、Cloneable、Serializable接口
+
+
+
+**基本属性和默认值**
+
+```java
+private transient Entry<K,V>[] table;
+private static class Entry<K,V> implements Map.Entry<K,V> {
+        int hash;
+        final K key;
+        V value;
+        Entry<K,V> next;
+//该属性用来存储HashTable的数据
+//当前采用的是哈希表的存储结构，采用的是链地址法解决哈希冲
+ 
+ 
+//表示集合中存储的Entry实体个数=hashmap->size
+private transient int count;
+ 
+//阈值  threshold=loadFactor*table.length
+private int threshold;
+ 
+ 
+//加载因子[0-1]的取值范围
+private float loadFactor;
+ 
+//版本记录
+private transient int modCount = 0;
+```
+
+
+
+**构造器**
+
+```java
+public Hashtable(int initialCapacity, float loadFactor) {
+	//校验
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal Capacity: "+
+                                               initialCapacity);
+        if (loadFactor <= 0 || Float.isNaN(loadFactor))
+            throw new IllegalArgumentException("Illegal Load: "+loadFactor);
+ 
+        if (initialCapacity==0)
+            initialCapacity = 1;
+        this.loadFactor = loadFactor;
+	//对hash中数组做初始化
+        table = new Entry[initialCapacity];
+	//变更加载因子
+        threshold = (int)Math.min(initialCapacity * loadFactor, MAX_ARRAY_SIZE + 1);
+        initHashSeedAsNeeded(initialCapacity);
+    }
+ 
+    /**
+     * Constructs a new, empty hashtable with the specified initial capacity
+     * and default load factor (0.75).
+     *
+     * @param     initialCapacity   the initial capacity of the hashtable.
+     * @exception IllegalArgumentException if the initial capacity is less
+     *              than zero.
+     */
+    public Hashtable(int initialCapacity) {
+        this(initialCapacity, 0.75f);
+    }
+ 
+    /**
+     * Constructs a new, empty hashtable with a default initial capacity (11)
+     * and load factor (0.75).
+     */
+    public Hashtable() {
+        this(11, 0.75f);
+    }
+ 
+ 
+ public Hashtable(Map<? extends K, ? extends V> t) {
+        this(Math.max(2*t.size(), 11), 0.75f);
+        putAll(t);
+    }
+/*默认值：
+初始容量默认值：11
+加载因子默认值：0.75f
+*/
+```
+
+
+
+**put操作**
+
+```java
+public synchronized V put(K key, V value) {
+        // Make sure the value is not null
+        if (value == null) {
+            throw new NullPointerException();
+        }
+	//HashTable中的value值是不能为null的
+ 
+        // Makes sure the key is not already in the hashtable.
+        Entry tab[] = table;
+        int hash = hash(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+	//key是不能重复的
+        for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                V old = e.value;
+                e.value = value;
+                return old;
+            }
+        }
+	
+        modCount++;
+        if (count >= threshold) {
+            // Rehash the table if the threshold is exceeded
+            rehash();
+ 
+            tab = table;
+            hash = hash(key);
+            index = (hash & 0x7FFFFFFF) % tab.length;
+        }
+ 
+        // 采用的是头插法插入新的节点
+        Entry<K,V> e = tab[index];
+        tab[index] = new Entry<>(hash, key, value, e);
+        count++;
+        return null;
+    }
+```
+
+synchronized是线程同步关键字，其修饰在HashTable中的put方法
+即表明同一时刻只能有一个线程来访问HashTable的实例，所以HashTable是线程安全的
+为什么有些地方不需要加锁（即没有synchronize）
+
+HashTable中的key和value都不能为null
+key是不能重复的，value是可以重复的
+
+**rehash操作**
+
+```java
+protected void rehash() {
+        int oldCapacity = table.length;
+        Entry<K,V>[] oldMap = table;
+ 
+        //扩容机制   2*table.length+1
+        int newCapacity = (oldCapacity << 1) + 1;
+        if (newCapacity - MAX_ARRAY_SIZE > 0) {
+            if (oldCapacity == MAX_ARRAY_SIZE)
+                // Keep running with MAX_ARRAY_SIZE buckets
+                return;
+            newCapacity = MAX_ARRAY_SIZE;
+        }
+        Entry<K,V>[] newMap = new Entry[newCapacity];
+ 
+        modCount++;
+        threshold = (int)Math.min(newCapacity * loadFactor, MAX_ARRAY_SIZE + 1);
+        boolean rehash = initHashSeedAsNeeded(newCapacity);
+ 
+        table = newMap;
+ 
+ 
+//重新hash
+        for (int i = oldCapacity ; i-- > 0 ;) {
+            for (Entry<K,V> old = oldMap[i] ; old != null ; ) {
+                Entry<K,V> e = old;
+                old = old.next;
+ 
+                if (rehash) {
+                    e.hash = hash(e.key);
+                }
+                int index = (e.hash & 0x7FFFFFFF) % newCapacity;
+                e.next = newMap[index];
+                newMap[index] = e;
+            }
+        }
+    }
+ 
+ 
+ private int hash(Object k) {
+        
+        return hashSeed ^ k.hashCode();//key不能为null，从这里提现出来的
+    }
+ 
+```
+
+
+
+**get操作**
+
+```java
+public synchronized V get(Object key) {
+        Entry tab[] = table;
+        int hash = hash(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry<K,V> e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                return e.value;
+            }
+        }
+        return null;
+    }
+//有的版本get操作没有加synchronized？
+//get操作只是查询，没有修改类的操作
+```
+
+
+
+**remove操作**
+
+```java
+public synchronized V remove(Object key) {
+//类似与单链表的删除，主要分析是头结点和不是头结点的区别
+        Entry tab[] = table;
+        int hash = hash(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (Entry<K,V> e = tab[index], prev = null ; e != null ; prev = e, e = e.next) {
+            if ((e.hash == hash) && e.key.equals(key)) {
+                modCount++;
+                if (prev != null) {
+                    prev.next = e.next;
+                } else {
+                    tab[index] = e.next;
+                }
+                count--;
+                V oldValue = e.value;
+                e.value = null;
+                return oldValue;
+            }
+        }
+        return null;
+    }
+//删除操作使用synchronize修饰，即同一时刻只能是一个线程访问remove()方法
+```
+
+
+
+### HashMap 源码解析 jdk1.8
+
+
+
+### LinkedHashMap 源码解析
+
+
+
+### TreeMap
+
+> 向TreeMap中添加key-value, 要求key必须是由同一个类创建的对象, 因为要按照key进行排序 : 自然排序, 定制排序
+
+
+
+```java
+//TreeMap自然排序
+@Test
+void testTreeMap() {
+    TreeMap map = new TreeMap();
+    User u1 = new User("Tom", 12);
+    User u2 = new User("Jerry", 12);
+    User u3 = new User("Bob", 12);
+    User u4 = new User("TK", 12);
+    map.put(u1,12);
+    map.put(u2,89);
+    map.put(u3,48);
+    map.put(u4,34);
+    Set entrySet = map.entrySet();
+    Iterator iterator = entrySet.iterator();
+    while (iterator.hasNext()) {
+        Object obj = iterator.next();
+        Map.Entry entry = (Map.Entry) obj;
+        System.out.println(entry.getKey()+"---------------->"+entry.getValue());
+    }
+}
+```
+
+```java
+//TreeMap定制排序
+
+@Test
+void testTreeMap1() {
+    TreeMap map = new TreeMap(new Comparator() {
+        @Override
+        public int compare(Object o1, Object o2) {
+            if(o1 instanceof User && o2 instanceof User){
+                User u1 = (User) o1;
+                User u2 = (User) o2;
+                return Integer.compare(u1.getAge(),u2.getAge());
+            }
+            throw new RuntimeException("输入的类型不匹配");
+        }
+    });
+    User u1 = new User("Tom", 12);
+    User u2 = new User("Jerry", 19);
+    User u3 = new User("Bob", 13);
+    User u4 = new User("TK", 18);
+    map.put(u1,12);
+    map.put(u2,89);
+    map.put(u3,48);
+    map.put(u4,34);
+    Set entrySet = map.entrySet();
+    Iterator iterator = entrySet.iterator();
+    while (iterator.hasNext()) {
+        Object obj = iterator.next();
+        Map.Entry entry = (Map.Entry) obj;
+        System.out.println(entry.getKey()+"---------------->"+entry.getValue());
+    }
+}
+```
+
+
+
+### Properties
+
+> 用来处理配置文件, key和value都是String类型
+
+```java
+@Test
+void testProperties() {
+    FileInputStream fis = null;
+    try {
+        Properties properties = new Properties();
+
+        fis = new FileInputStream("F:\\CodeHub\\JavaWorkSpace\\JavaLearn\\Collection\\src\\com\\broky\\Collection\\jdbc.properties");
+        properties.load(fis);
+        String name = properties.getProperty("name");
+        String password = properties.getProperty("password");
+
+        System.out.println("name = " + name + " , password = " + password);
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+
+
+### Collections工具类
+
+**说明**
+
+1. Collections 是一个**操作 Set, List 和 Map** 等集合的工具类
+2. Collections 中提供了一系列静态的方法对集合元素进行排序, 查询和修改等操作, 还提供了对集合对象设置不可变, 对集合对象实现同步控制等方法.
+
+**面试题: Collection 和 Collections 的区别**
+
+- Collection 是一个创建集合的接口
+
+- Collections 是一个操作集合的工具类
+
+**排序操作：**（均为static方法）
+
+- reverse(List)：反转List 中元素的顺序
+- shuffle(List)：对List集合元素进行随机排序
+- sort(List)：根据元素的自然顺序对指定List 集合元素按升序排序
+- sort(List，Comparator)：根据指定的Comparator 产生的顺序对List 集合元素进行排序
+- swap(List，int，int)：将指定list 集合中的i处元素和j 处元素进行交换
+
+**查找、替换**
+
+- Object max(Collection)：根据元素的自然顺序，返回给定集合中的最大元素
+- Object max(Collection，Comparator)：根据Comparator 指定的顺序，返回给定集合中的最大元素
+- Object min(Collection)
+- Object min(Collection，Comparator)
+- intfrequency(Collection，Object)：返回指定集合中指定元素的出现次数
+- void copy(List dest,Listsrc)：将src中的内容复制到dest中
+- booleanreplaceAll(List list，Object oldVal，Object newVal)：使用新值替换List 对象的所有旧值
+
+**demo**
+
+```java
+@Test
+void testCollectons() {
+    ArrayList list = new ArrayList();
+    list.add(123);
+    list.add(43);
+    list.add(43);
+    list.add(765);
+    list.add(-97);
+    list.add(0);
+    System.out.println(list);
+
+    Collections.reverse(list);
+    System.out.println(list);
+
+    Collections.shuffle(list);
+    System.out.println(list);
+
+    Collections.sort(list); //调用Integer的compareto()函数
+    System.out.println(list);
+
+    System.out.println(Collections.frequency(list, 43));
+
+    //        ArrayList dest = new ArrayList(); 报异常
+    //        ArrayList dest = new ArrayList(list.size()); //这么写, 是指定ArrayList中底层实现数组的大小,而不是ArrayList中size()的大小
+
+    List dest = Arrays.asList(new Object[list.size()]); //new Object[list.size()]为长度为list.size(),值为null的object类型数组
+    System.out.println(dest);
+    Collections.copy(dest, list); //copy中dest.size()必须大于list.size()
+    System.out.println(dest);
+}
+```
+
+
+
+**Collections常用方法：同步控制**
+
+Collections 类中提供了多个**synchronizedXxx()** 方法，该方法可使将指定集合包装成线程同步的集合，从而可以解决多线程并发访问集合时的线程安全问题
+
+```java
+@Test
+void testSynchronized() {
+    ArrayList list = new ArrayList();
+    list.add(123);
+    list.add(43);
+    list.add(43);
+    list.add(765);
+    list.add(-97);
+    list.add(0);
+	
+    //将list转换为线程安全的list1
+    List list1 = Collections.synchronizedList(list);
+    
+}
+```
+
+
+
+### Enumeration(了解)
+
+> Enumeration 接口是Iterator迭代器的“古老版本”
+
